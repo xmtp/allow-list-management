@@ -20,13 +20,9 @@ Please refer to the XMTP documentation for comprehensive information regarding t
 
 - [Subscribe with your wallet](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
 
-- [Refresh the consent List](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
-
 - [Retrieve the current consent state](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
 
 - [Update the consent state](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
-
-- [Callbacks](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
 
 ## Caution :warning:
 

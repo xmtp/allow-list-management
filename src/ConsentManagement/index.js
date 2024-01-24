@@ -109,6 +109,7 @@ export function ConsentManagement({
       if (window.confirm("Are you sure you want to allow this address?")) {
         await client.contacts.allow([address]);
         refreshConsentList(client);
+        onSubscribe(client.address, "allowed");
       }
     } else {
       console.error("Client is not set");
@@ -120,6 +121,7 @@ export function ConsentManagement({
       if (window.confirm("Are you sure you want to deny this address?")) {
         await client.contacts.deny([address]);
         refreshConsentList(client);
+        onUnsubscribe(client.address, "denied");
       }
     } else {
       console.error("Client is not set");
