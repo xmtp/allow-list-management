@@ -2,7 +2,7 @@
 
 This tutorial will guide you on how to create a simple consent management system that enables the user to manage their consent preferences for your messages or notifications.
 
-![](animation.gif)
+https://github.com/fabriguespe/xmtp-ppp-consent-management/assets/1447073/453ec1ac-b531-4c8f-87e4-c8919748d43a
 
 ## Considerations
 
