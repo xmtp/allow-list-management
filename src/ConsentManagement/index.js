@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Client } from "@xmtp/xmtp-js";
 import { ethers } from "ethers";
 
+// ConsentManagement component for managing user consents
 export function ConsentManagement({
   onSubscribe,
   onUnsubscribe,
@@ -9,10 +10,12 @@ export function ConsentManagement({
   env,
   label = "Show subscriptions",
 }) {
+  // State variables for loading, consent list and client
   const [loading, setLoading] = useState(false);
   const [consentList, setConsentList] = useState([]);
   const [client, setClient] = useState(null);
 
+  // Styles for the component
   const styles = {
     SubscribeButtonContainer: {
       position: "relative",
@@ -47,6 +50,7 @@ export function ConsentManagement({
     },
   };
 
+  // Function to connect to the wallet
   const connectWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
       try {
@@ -61,6 +65,7 @@ export function ConsentManagement({
     }
   };
 
+  // Function to handle click event
   const handleClick = async () => {
     try {
       setLoading(true);
@@ -74,6 +79,7 @@ export function ConsentManagement({
       console.log(error);
     }
   };
+  // Function to refresh the consent list
   const refreshConsentList = async (client) => {
     let consentList = await client.contacts.refreshConsentList();
 
@@ -97,6 +103,7 @@ export function ConsentManagement({
     setConsentList(uniqueConsentList);
     return uniqueConsentList;
   };
+  // Function to download the consent list as a CSV file
   const downloadCSV = async () => {
     const csvRows = [];
     const headers = ["Address", "State"];
@@ -118,6 +125,7 @@ export function ConsentManagement({
     link.click();
   };
 
+  // Function to handle allowing an address
   const handleAllow = async (address) => {
     if (client) {
       if (window.confirm("Are you sure you want to allow this address?")) {
@@ -130,6 +138,7 @@ export function ConsentManagement({
     }
   };
 
+  // Function to handle denying an address
   const handleDeny = async (address) => {
     if (client) {
       if (window.confirm("Are you sure you want to deny this address?")) {
@@ -142,7 +151,7 @@ export function ConsentManagement({
     }
   };
 
-  // In the render function
+  // Render function
   return (
     <div
       style={styles.SubscribeButtonContainer}
