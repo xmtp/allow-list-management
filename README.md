@@ -16,13 +16,19 @@ Before diving into the code let's consider important aspects while integrating c
 
 Please refer to the XMTP documentation for comprehensive information regarding the implementation.
 
-- [Import libraries](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
+- [Import libraries](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#import-libraries)
 
-- [Subscribe with your wallet](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
+- [Connect the wallet](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#connect-the-wallet)
 
-- [Retrieve the current consent state](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
+- [Get consent List](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#get-consent-list)
 
-- [Update the consent state](https://xmtp.org/docs/tutorials/portable-consent/subscribe#tutorial)
+- [Render consent table](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#render consent-table)
+
+- [Handle consent change](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#handle-consent-change)
+
+- [Download the consent list as a CSV file](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#download-the-consent-list-as-a-csv-file)
+
+- [Render the Component](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#render-the-component)
 
 ## Caution :warning:
 
