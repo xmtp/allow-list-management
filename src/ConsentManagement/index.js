@@ -9,11 +9,8 @@ export function ConsentManagement({
   env,
   label = "Show subscriptions",
 }) {
-  // State for loading status
   const [loading, setLoading] = useState(false);
-  // State for consent list
   const [consentList, setConsentList] = useState([]);
-  // State for client
   const [client, setClient] = useState(null);
 
   const styles = {
@@ -45,7 +42,7 @@ export function ConsentManagement({
       flexWrap: "wrap",
     },
     ConsentTable: {
-      flex: "1 1 400px", // This will make the tables take up equal width and wrap to the next line on small screens
+      flex: "1 1 400px",
       margin: "10px",
     },
   };
@@ -63,47 +60,64 @@ export function ConsentManagement({
       console.error("Metamask not found");
     }
   };
-  // Define the handleClick function
+
   const handleClick = async () => {
     try {
-      // Set loading to true
       setLoading(true);
-      // Get the subscriber
       let wallet = await connectWallet();
       let client = await Client.create(wallet, { env: env });
       setClient(client);
-      // Set loading to false
       await refreshConsentList(client);
       setLoading(false);
     } catch (error) {
-      // If onError function exists, call it with the error
       if (typeof onError === "function") onError(error);
-      // Log the error
       console.log(error);
     }
   };
   const refreshConsentList = async (client) => {
-    // Get the consent list
     let consentList = await client.contacts.refreshConsentList();
-    //let refreshList = await client.contacts.loadConsentList(); //this will only bring the ones not saved in cache.
-    // Sort the consent list
-    const uniqueConsentList = consentList
-      .slice() // Create a copy of the array to avoid mutating the original data
-      .reverse() // Reverse to keep the last appearance when filtering
+
+    let uniqueConsentList = consentList
+      .slice()
+      .reverse()
       .filter(
         (consent, index, self) =>
           index === self.findIndex((t) => t.value === consent.value),
       )
-      .reverse(); // Reverse again to restore the original order
-    uniqueConsentList.sort((a, b) => {
-      if (a.state === "allowed" && b.state !== "allowed") return -1;
-      if (a.state === "unknown" && b.state !== "unknown") return 1;
-      if (a.state === "denied" && b.state !== "denied") return 1;
+      .reverse();
+    uniqueConsentList = uniqueConsentList.sort((a, b) => {
+      if (a.permissionType === "allowed" && b.permissionType !== "allowed")
+        return -1;
+      if (a.permissionType === "unknown" && b.permissionType !== "unknown")
+        return 1;
+      if (a.permissionType === "denied" && b.permissionType !== "denied")
+        return 1;
       return 0;
     });
-    // Set the consent list
     setConsentList(uniqueConsentList);
+    return uniqueConsentList;
   };
+  const downloadCSV = async () => {
+    const csvRows = [];
+    const headers = ["Address", "State"];
+    csvRows.push(headers.join(","));
+
+    const list = await refreshConsentList(client);
+    console.log(list);
+    for (const consent of list) {
+      csvRows.push(`${consent.value},${consent.permissionType}`);
+    }
+
+    const csvString = csvRows.join("\n");
+    const blob = new Blob([csvString], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.download = "consent_list.csv";
+    link.href = url;
+    link.click();
+  };
+
   const handleAllow = async (address) => {
     if (client) {
       if (window.confirm("Are you sure you want to allow this address?")) {
@@ -136,6 +150,11 @@ export function ConsentManagement({
       <button style={styles.SubscribeButton} onClick={handleClick}>
         {loading ? "Loading... " : label}
       </button>
+      {consentList.length > 0 && (
+        <button style={styles.SubscribeButton} onClick={downloadCSV}>
+          Download CSV
+        </button>
+      )}
       <div style={styles.ConsentContainer}>
         <div style={styles.ConsentTable}>
           {consentList.length > 0 && <h2>Allowed</h2>}
