@@ -1,6 +1,6 @@
-# Enabling Subscribers with XMTP
+# Consent Management with XMTP
 
-This tutorial will guide you on how to create a simple `Subscribe` button with consent that enables the user to subscribe to your messages or notifications.
+This tutorial will guide you on how to create a simple consent management system that enables the user to manage their consent preferences for your messages or notifications.
 
 ![](animation.gif)
 

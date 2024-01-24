@@ -73,7 +73,7 @@ export function ConsentManagement({
       let client = await Client.create(wallet, { env: env });
       setClient(client);
       // Set loading to false
-      refreshConsentList(client);
+      await refreshConsentList(client);
       setLoading(false);
     } catch (error) {
       // If onError function exists, call it with the error
@@ -108,7 +108,7 @@ export function ConsentManagement({
     if (client) {
       if (window.confirm("Are you sure you want to allow this address?")) {
         await client.contacts.allow([address]);
-        refreshConsentList(client);
+        await refreshConsentList(client);
         onSubscribe(client.address, "allowed");
       }
     } else {
@@ -120,7 +120,7 @@ export function ConsentManagement({
     if (client) {
       if (window.confirm("Are you sure you want to deny this address?")) {
         await client.contacts.deny([address]);
-        refreshConsentList(client);
+        await refreshConsentList(client);
         onUnsubscribe(client.address, "denied");
       }
     } else {
