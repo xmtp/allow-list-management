@@ -22,7 +22,7 @@ Please refer to the XMTP documentation for comprehensive information regarding t
 
 - [Get consent List](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#get-consent-list)
 
-- [Render consent table](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#render consent-table)
+- [Render consent table](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#render-consent-table)
 
 - [Handle consent change](https://junk-range-possible-git-management-xmtp-labs.vercel.app/docs/tutorials/portable-consent/consent-mangement#handle-consent-change)
 

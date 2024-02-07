@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Client } from "@xmtp/xmtp-js";
 import { ethers } from "ethers";
+import { init, useQuery } from "@airstack/airstack-react";
+// Initialize Airstack with your API key
+init(process.env.REACT_APP_AIRSTACK_API_KEY);
 
 // ConsentManagement component for managing user consents
 export function ConsentManagement({
@@ -14,7 +17,49 @@ export function ConsentManagement({
   const [loading, setLoading] = useState(false);
   const [consentList, setConsentList] = useState([]);
   const [client, setClient] = useState(null);
+  const [wallets, setWallets] = useState([]);
+  const addresses = consentList
+    .filter((consent) => consent.value !== null && consent.value.trim() !== "")
+    .map((consent) => consent.value);
 
+  const query = `query MyQuery {
+    # Get All Web3 socials (Lens/Farcaster)
+    Socials(
+      input: {
+        filter: {
+          identity: {
+            _in: ${JSON.stringify(addresses)}
+          }
+        },
+        blockchain: ethereum
+      }
+    ) {
+      Social {
+        userAssociatedAddresses
+        dappName
+        profileName
+      }
+    }
+    # Get All ENS domains, including offchain Namestone & cb.id
+    Domains(
+      input: {
+        filter: {
+          resolvedAddress: {
+            _in: ${JSON.stringify(addresses)}
+          }
+        },
+        blockchain: ethereum
+      }
+    ) {
+      Domain {
+        resolvedAddress
+        name
+        isPrimary
+      }
+    }
+  }`;
+  const { data, loading: queryLoading, error } = useQuery(query);
+  // Extract the addresses from the consentList
   // Styles for the component
   const styles = {
     SubscribeButtonContainer: {
@@ -42,14 +87,83 @@ export function ConsentManagement({
     ConsentContainer: {
       display: "flex",
       justifyContent: "space-between",
-      flexWrap: "wrap",
     },
     ConsentTable: {
-      flex: "1 1 400px",
+      width: "400px", // or any other fixed width
       margin: "10px",
     },
+    labelBubble: {
+      padding: "5px 10px",
+      borderRadius: "15px",
+      fontSize: "12px",
+      color: "white",
+      margin: "2px",
+      display: "inline-block",
+    },
+    farcasterLabel: {
+      backgroundColor: "#8a63d2", // Purple
+    },
+    lensLabel: {
+      backgroundColor: "rgb(195, 228, 205)", // Green
+    },
+    ensDomainLabel: {
+      backgroundColor: "#03A9F4", // Light Blue
+    },
   };
+  useEffect(() => {
+    const processData = async () => {
+      console.log("entra2", data);
+      if (!queryLoading && !error && data) {
+        // Process and set the address resolutions based on the fetched data
+        const newResolutions = {};
+        // Process Socials
+        for (const consent of consentList) {
+          const address = consent.value.toLowerCase(); // Convert to lowercase
 
+          for (const social of data.Socials.Social) {
+            if (
+              social.userAssociatedAddresses
+                .map((address) => address.toLowerCase()) // Convert to lowercase
+                .includes(address)
+            ) {
+              if (!newResolutions[address]) {
+                newResolutions[address] = { socials: [], domains: [] };
+              }
+              console.log("entra", consent.value);
+              newResolutions[address].socials.push({
+                dappName: social.dappName,
+                profileName: social.profileName,
+              });
+            }
+          }
+
+          for (const domain of data.Domains.Domain) {
+            if (domain.resolvedAddress.toLowerCase() === address) {
+              if (!newResolutions[address]) {
+                newResolutions[address] = { socials: [], domains: [] };
+              }
+              newResolutions[address].domains.push({
+                name: domain.name,
+                isPrimary: domain.isPrimary,
+              });
+            }
+          }
+        }
+        // Merge newResolutions into consentList to form wallets
+        const wallets = consentList.map((consent) => {
+          const address = consent.value.toLowerCase();
+          const resolution = newResolutions[address];
+          return {
+            ...consent,
+            socials: resolution ? resolution.socials : [],
+            domains: resolution ? resolution.domains : [],
+          };
+        });
+        setWallets(wallets);
+      }
+    };
+    processData();
+  }, [data, queryLoading, error]);
   // Function to connect to the wallet
   const connectWallet = async () => {
     if (typeof window.ethereum !== "undefined") {
@@ -76,6 +190,44 @@ export function ConsentManagement({
       setLoading(false);
     } catch (error) {
       if (typeof onError === "function") onError(error);
+      console.log(error);
+    }
+  };
+
+  // Define the handleClick function
+  const handleSubscribe = async () => {
+    try {
+      const senderAddress = "0x1ca66c990e86b750ea6b2180d17fff89273a5c0d";
+      // Set loading to true
+      setLoading(true);
+      // Refresh the consent list before performing the allow action
+      await refreshConsentList(client);
+
+      // Get the consent state of the subscriber
+      let state = client.contacts.consentState(senderAddress);
+      // If the state is unknown or blocked, allow the subscriber
+      if (state === "unknown" || state === "denied") {
+        // Perform the allow action on the address
+        console.log(state, senderAddress);
+        await client.contacts.allow([senderAddress]);
+        // Refresh the consent list after performing the allow action
+        await refreshConsentList(client);
+      } else if (state === "allowed") {
+        state = "denied";
+        await client.contacts.deny([senderAddress]);
+      }
+
+      // Refresh the consent list before performing the allow action
+      await refreshConsentList(client);
+      // Get the consent state of the subscriber
+      state = client.contacts.consentState(senderAddress);
+      console.log(state);
+      // Set loading to false
+      setLoading(false);
+    } catch (error) {
+      // If onError function exists, call it with the error
+      if (typeof onError === "function") onError(error);
+      // Log the error
       console.log(error);
     }
   };
@@ -125,7 +277,6 @@ export function ConsentManagement({
     csvRows.push(headers.join(","));
 
     const list = await refreshConsentList(client);
-    console.log(list);
     for (const consent of list) {
       csvRows.push(`${consent.value},${consent.permissionType}`);
     }
@@ -182,7 +333,49 @@ export function ConsentManagement({
     }
   };
 
-  // Render function
+  function renderAddressBubbles(address, socials, domains) {
+    // Shorten the address for display
+    const shortAddress = `${address.substring(0, 6)}...${address.substring(
+      address.length - 4,
+    )}`;
+    const notFound = socials.length === 0 && domains.length === 0;
+    return (
+      <div style={{ display: "flex", flexWrap: "wrap", overflow: "auto" }}>
+        {notFound ? (
+          <span style={{ ...styles.labelBubble, backgroundColor: "#757575" }}>
+            {shortAddress}
+          </span>
+        ) : (
+          <>
+            {socials.map((social, index) => {
+              let style = { ...styles.labelBubble };
+              if (social.dappName.toLowerCase() === "farcaster") {
+                style = { ...style, ...styles.farcasterLabel };
+              } else if (social.dappName.toLowerCase() === "lens") {
+                style = { ...style, ...styles.lensLabel };
+              } // Add more conditions here if needed
+              return (
+                <span key={index} style={style}>
+                  {social.profileName}
+                </span>
+              );
+            })}
+            {domains.map(
+              (domain, index) =>
+                domain.isPrimary && (
+                  <span
+                    key={index}
+                    style={{ ...styles.labelBubble, ...styles.ensDomainLabel }}>
+                    {domain.name}
+                  </span>
+                ),
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
       style={styles.SubscribeButtonContainer}
@@ -190,22 +383,40 @@ export function ConsentManagement({
       <button style={styles.SubscribeButton} onClick={handleClick}>
         {loading ? "Loading... " : label}
       </button>
-      {consentList.length > 0 && (
+      {wallets.length > 0 && (
         <button style={styles.SubscribeButton} onClick={downloadCSV}>
           Download CSV
         </button>
       )}
+      {wallets.length > 0 && (
+        <button style={styles.SubscribeButton} onClick={handleSubscribe}>
+          Test
+        </button>
+      )}
       <div style={styles.ConsentContainer}>
         <div style={styles.ConsentTable}>
-          {consentList.length > 0 && <h2>Allowed</h2>}
-          {consentList
+          {wallets.length > 0 && <h2>Allowed</h2>}
+          {wallets
             .filter((consent) => consent.permissionType === "allowed")
             .map((consent, index) => (
               <div
                 key={index}
                 style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ textAlign: "left" }}>{index + 1}.</span>
-                <span style={{ textAlign: "left" }}>{consent.value}</span>
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    margin: "10px 0",
+                  }}>
+                  {renderAddressBubbles(
+                    consent.value,
+                    consent.socials,
+                    consent.domains,
+                  )}
+                </div>
                 <span
                   style={{ color: "red", cursor: "pointer" }}
                   onClick={() => handleDeny(consent.value)}>
@@ -215,15 +426,28 @@ export function ConsentManagement({
             ))}
         </div>
         <div style={styles.ConsentTable}>
-          {consentList.length > 0 && <h2>Denied</h2>}
-          {consentList
+          {wallets.length > 0 && <h2>Denied</h2>}
+          {wallets
             .filter((consent) => consent.permissionType === "denied")
             .map((consent, index) => (
               <div
                 key={index}
                 style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ textAlign: "left" }}>{index + 1}.</span>
-                <span style={{ textAlign: "left" }}>{consent.value}</span>
+                <span style={{ textAlign: "left" }}>{index + 1}.</span>{" "}
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    margin: "10px 0",
+                  }}>
+                  {renderAddressBubbles(
+                    consent.value,
+                    consent.socials,
+                    consent.domains,
+                  )}
+                </div>
                 <span
                   style={{ color: "green", cursor: "pointer" }}
                   onClick={() => handleAllow(consent.value)}>
