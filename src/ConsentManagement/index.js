@@ -339,6 +339,8 @@ export function ConsentManagement({
       address.length - 4,
     )}`;
     const notFound = socials.length === 0 && domains.length === 0;
+    if (domains.length === 0) return null; // Do not render if there are no domains
+
     return (
       <div style={{ display: "flex", flexWrap: "wrap", overflow: "auto" }}>
         {notFound ? (
@@ -353,23 +355,22 @@ export function ConsentManagement({
                 style = { ...style, ...styles.farcasterLabel };
               } else if (social.dappName.toLowerCase() === "lens") {
                 style = { ...style, ...styles.lensLabel };
-              } // Add more conditions here if needed
+              } else {
+                style = { ...style };
+              }
               return (
                 <span key={index} style={style}>
                   {social.profileName}
                 </span>
               );
             })}
-            {domains.map(
-              (domain, index) =>
-                domain.isPrimary && (
-                  <span
-                    key={index}
-                    style={{ ...styles.labelBubble, ...styles.ensDomainLabel }}>
-                    {domain.name}
-                  </span>
-                ),
-            )}
+            {domains.map((domain, index) => (
+              <span
+                key={index}
+                style={{ ...styles.labelBubble, ...styles.ensDomainLabel }}>
+                {domain.name}
+              </span>
+            ))}
           </>
         )}
       </div>
@@ -397,7 +398,11 @@ export function ConsentManagement({
         <div style={styles.ConsentTable}>
           {wallets.length > 0 && <h2>Allowed</h2>}
           {wallets
-            .filter((consent) => consent.permissionType === "allowed")
+            .filter(
+              (consent) =>
+                consent.permissionType === "allowed" &&
+                consent.domains.length > 0,
+            )
             .map((consent, index) => (
               <div
                 key={index}
@@ -428,7 +433,11 @@ export function ConsentManagement({
         <div style={styles.ConsentTable}>
           {wallets.length > 0 && <h2>Denied</h2>}
           {wallets
-            .filter((consent) => consent.permissionType === "denied")
+            .filter(
+              (consent) =>
+                consent.permissionType === "denied" &&
+                consent.domains.length > 0,
+            )
             .map((consent, index) => (
               <div
                 key={index}
