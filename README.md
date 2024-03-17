@@ -1,4 +1,4 @@
-# Consent Management with XMTP
+# Allow List Management with XMTP
 
 This guide will walk you through the creation of a consent management system. This system will allow users to control their consent preferences for your messages or notifications. By leveraging XMTP, this tutorial offers tools to build a consent management system that respects user preferences and protects their privacy.
 
