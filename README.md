@@ -2,6 +2,7 @@
 
 This guide will walk you through the creation of a consent management system. This system will allow users to control their consent preferences for your messages or notifications. By leveraging XMTP, this tutorial offers tools to build a consent management system that respects user preferences and protects their privacy.
 
+![CleanShot 2024-08-15 at 09 48 08@2x](https://github.com/user-attachments/assets/504b4564-61eb-4158-98a7-162dee9e5c7c)
 
 ### Import libraries
 
