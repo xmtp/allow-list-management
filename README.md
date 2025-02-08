@@ -1,3 +1,12 @@
+![Status](https://img.shields.io/badge/Deprecated-brown)
+
+> [!CAUTION]
+> This repo is no longer maintained.
+
+For your project, consider using the official consent feature delivered by XMTP. To learn more, see [Support spam-free inboxes](https://docs.xmtp.org/inboxes/user-consent/user-consent).
+
+The documentation below is provided for historical reference only.
+
 # Build a consent management system with XMTP
 
 This guide will walk you through the creation of a consent management system. This system will allow users to control their consent preferences for your messages or notifications. By leveraging XMTP, this tutorial offers tools to build a consent management system that respects user preferences and protects their privacy.
